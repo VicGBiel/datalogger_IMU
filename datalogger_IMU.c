@@ -129,6 +129,7 @@ int main(){
         }
 
         if (flag_record_toggle) {
+            sample_count = 0;  // Reset do contador ao iniciar nova gravação
             flag_record_toggle = false;
             is_recording = !is_recording;
             
@@ -147,7 +148,7 @@ int main(){
 
         update_led();
         update_display(&ssd); 
-        sleep_ms(100);
+        sleep_ms(500);
     }
 }
 
@@ -224,7 +225,6 @@ void read_sensor_data(SensorData *data) {
 void capture_to_file(const char *filename){
     static FIL file;
     static bool file_open = false;
-    static char current_filename[50];
     
     if (!is_recording){
         f_close(&file);
