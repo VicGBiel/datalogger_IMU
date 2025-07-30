@@ -129,7 +129,6 @@ int main(){
         }
 
         if (flag_record_toggle) {
-            sample_count = 0;  // Reset do contador ao iniciar nova gravação
             flag_record_toggle = false;
             is_recording = !is_recording;
             
@@ -142,7 +141,7 @@ int main(){
             }
         }
         
-        if (is_recording) {
+        if (is_recording || (current_state == STATE_SAVING)) {
             capture_to_file(filename);
         }
 
@@ -214,9 +213,9 @@ void read_sensor_data(SensorData *data) {
     data->accel[2] = raw_accel[2] / 16384.0f;
     
     // Conversão para graus por segundo (°/s)
-    data->gyro[0] = raw_gyro[0]/131.0f;
-    data->gyro[1] = raw_gyro[1]/131.0f;
-    data->gyro[2] = raw_gyro[2]/131.0f;
+    data->gyro[0] = raw_gyro[0]/131;
+    data->gyro[1] = raw_gyro[1]/131;
+    data->gyro[2] = raw_gyro[2]/131;
     
     data->temp = raw_temp / 340.0f + 36.53f; // Conversão para Celsius
     data->timestamp = to_ms_since_boot(get_absolute_time());
@@ -225,6 +224,7 @@ void read_sensor_data(SensorData *data) {
 void capture_to_file(const char *filename){
     static FIL file;
     static bool file_open = false;
+    static char current_filename[50];
     
     if (!is_recording){
         f_close(&file);
@@ -245,7 +245,7 @@ void capture_to_file(const char *filename){
     SensorData data;
     read_sensor_data(&data);
     
-    f_printf(&file, "%lu,%lu,%.3f,%.3f,%.3f,%.2f,%.2f,%.2f,%.1f\n",
+    f_printf(&file, "%lu,%lu,%.3f,%.3f,%.3f,%d,%d,%d,%.1f\n",
              sample_count++, data.timestamp,
              data.accel[0], data.accel[1], data.accel[2],
              data.gyro[0], data.gyro[1], data.gyro[2],
